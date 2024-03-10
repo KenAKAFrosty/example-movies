@@ -37,6 +37,8 @@ export default component$(() => {
     }
     html { 
       font-family: 'Inter Variable', sans-serif;
+      background-color: #fefefe;
+      color: #222;
     }
   `);
   return <Slot />;

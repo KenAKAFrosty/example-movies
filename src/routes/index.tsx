@@ -1,6 +1,7 @@
 import { component$, useStylesScoped$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { routeLoader$, type DocumentHead } from "@builder.io/qwik-city";
 import { GitHubLogo, QwikLogo } from "~/components/icons";
+import { getQueryBuilder } from "~/database/query_builder";
 
 export default component$(() => {
   useStylesScoped$(`
@@ -27,11 +28,16 @@ export default component$(() => {
   );
 });
 
+export const useSomeData = routeLoader$(() => {
+  const qb = getQueryBuilder();
+  return qb.selectFrom("test").selectAll().execute();
+});
 const Content = component$(() => {
   useStylesScoped$(`
     
   `);
 
+  const someData = useSomeData();
   return (
     <main>
       <h1>Movies!</h1>
@@ -40,6 +46,9 @@ const Content = component$(() => {
         <br />
         Happy coding.
       </p>
+      {someData.value.map((row) => (
+        <div key={row.some_field}>{row.some_field}</div>
+      ))}
     </main>
   );
 });
@@ -107,7 +116,12 @@ const Footer = component$(() => {
         </a>
       </div>
       <div class="others">
-         <a href="https://remix-movies.pages.dev/">Ryan's Original Remix Example</a><a href="https://sveltekit-movies-demo.vercel.app/">Rich's SvelteKit Example</a>
+        <a href="https://remix-movies.pages.dev/">
+          Ryan's Original Remix Example
+        </a>
+        <a href="https://sveltekit-movies-demo.vercel.app/">
+          Rich's SvelteKit Example
+        </a>
       </div>
     </footer>
   );

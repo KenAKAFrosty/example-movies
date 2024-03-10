@@ -12,7 +12,7 @@
   "trustedDependencies-annotation": "Needed for bun to allow running install scripts",
   "type": "module",
   "scripts": {
-    "build": "qwik build",
+    "build": "npm run typegen && qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
     "build.server": "vite build -c adapters/bun/vite.config.ts",
@@ -26,6 +26,7 @@
     "preview": "qwik build preview && vite preview --open",
     "serve": "bun server/entry.bun.js",
     "start": "vite --open --mode ssr",
+    "typegen": "kysely-codegen --include-pattern \"public.*\" --dialect postgres --out-file src/database/generated_types.d.ts",
     "qwik": "qwik"
   },
   "devDependencies": {
@@ -34,6 +35,7 @@
     "@types/bun": "*",
     "@types/eslint": "^8.56.5",
     "@types/node": "^20.11.24",
+    "@types/pg": "^8.11.2",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8.57.0",
@@ -47,6 +49,7 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.0.17",
-    "kysely": "^0.27.3"
+    "kysely": "^0.27.3",
+    "pg": "^8.11.3"
   }
 }
