@@ -15,30 +15,38 @@
     "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
+    "build.server": "vite build -c adapters/bun/vite.config.ts",
     "build.types": "tsc --incremental --noEmit",
     "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
-    "dev": "vite --mode ssr",
+    "dev": "vite --mode ssr --host",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
     "preview": "qwik build preview && vite preview --open",
+    "serve": "bun server/entry.bun.js",
     "start": "vite --open --mode ssr",
     "qwik": "qwik"
   },
   "devDependencies": {
     "@builder.io/qwik": "^1.5.1",
     "@builder.io/qwik-city": "^1.5.1",
+    "@types/bun": "*",
     "@types/eslint": "^8.56.5",
     "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8.57.0",
     "eslint-plugin-qwik": "^1.5.1",
+    "kysely-codegen": "^0.13.1",
     "prettier": "^3.2.5",
     "typescript": "5.3.3",
     "undici": "*",
     "vite": "^5.1.4",
     "vite-tsconfig-paths": "^4.2.1"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.0.17",
+    "kysely": "^0.27.3"
   }
 }

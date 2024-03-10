@@ -1,17 +1,43 @@
-import { component$, Slot } from "@builder.io/qwik";
-import type { RequestHandler } from "@builder.io/qwik-city";
+import { component$, Slot, useStyles$ } from "@builder.io/qwik";
+import { type DocumentHead } from "@builder.io/qwik-city";
+import "@fontsource-variable/inter";
+import interFontDeclarationString from "@fontsource-variable/inter?inline";
 
-export const onGet: RequestHandler = async ({ cacheControl }) => {
-  // Control caching for this request for best performance and to reduce hosting costs:
-  // https://qwik.builder.io/docs/caching/
-  cacheControl({
-    // Always serve a cached response by default, up to a week stale
-    staleWhileRevalidate: 60 * 60 * 24 * 7,
-    // Max once every 5 seconds, revalidate on the server to get a fresh version of this page
-    maxAge: 5,
-  });
+function extractUrlsFromFontsourceString(fontsourceString: string) {
+  const extractUrlsFromFontsourceStringRegex = /url\(([^)]+)\)/g;
+  const matches = fontsourceString.match(extractUrlsFromFontsourceStringRegex);
+  return matches ? matches.map((match) => match.slice(4, -1)) : [];
+}
+
+export const head: DocumentHead = (event) => {
+  console.log(interFontDeclarationString);
+  event; //leaving here to make clear we can access this if needed for anything dynamic we want in the <head>
+  const interFontUrls = extractUrlsFromFontsourceString(
+    interFontDeclarationString
+  );
+  return {
+    links: interFontUrls.map((url) => {
+      return {
+        rel: "preload",
+        href: url,
+        as: "font",
+        type: "font/woff2",
+        crossorigin: "anonymous",
+      };
+    }),
+  };
 };
 
 export default component$(() => {
+  useStyles$(`
+    * { 
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    html { 
+      font-family: 'Inter Variable', sans-serif;
+    }
+  `);
   return <Slot />;
 });
