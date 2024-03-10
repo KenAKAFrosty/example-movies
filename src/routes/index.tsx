@@ -1,5 +1,6 @@
 import { component$, useStylesScoped$ } from "@builder.io/qwik";
 import { routeLoader$, type DocumentHead } from "@builder.io/qwik-city";
+import { sql } from "kysely";
 import { GitHubLogo, QwikLogo } from "~/components/icons";
 import { getQueryBuilder } from "~/database/query_builder";
 
@@ -28,27 +29,37 @@ export default component$(() => {
   );
 });
 
-export const useSomeData = routeLoader$(() => {
-  const qb = getQueryBuilder();
-  return qb.selectFrom("test").selectAll().execute();
+export const useRandomMovies = routeLoader$(() => {
+  return getQueryBuilder()
+    .selectFrom("movies")
+    .selectAll()
+    .where("thumbnail", "!=", "")
+    .orderBy(sql`RANDOM()`)
+    .limit(12)
+    .execute();
 });
 const Content = component$(() => {
   useStylesScoped$(`
-    
+      h1 { 
+          text-align: center;
+          margin-bottom: 12px;
+      }
+      ul { 
+        width: 380px;
+      }
   `);
 
-  const someData = useSomeData();
+  const randomMovies = useRandomMovies();
   return (
     <main>
       <h1>Movies!</h1>
-      <p>
-        Can't wait to see what you build with qwik!
-        <br />
-        Happy coding.
-      </p>
-      {someData.value.map((row) => (
-        <div key={row.some_field}>{row.some_field}</div>
-      ))}
+      <ul>
+        {randomMovies.value.map((row) => (
+          <li key={row.title}>
+            {row.title}:{row.year}
+          </li>
+        ))}
+      </ul>
     </main>
   );
 });

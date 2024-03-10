@@ -10,7 +10,6 @@ function extractUrlsFromFontsourceString(fontsourceString: string) {
 }
 
 export const head: DocumentHead = (event) => {
-  console.log(interFontDeclarationString);
   event; //leaving here to make clear we can access this if needed for anything dynamic we want in the <head>
   const interFontUrls = extractUrlsFromFontsourceString(
     interFontDeclarationString
@@ -39,6 +38,30 @@ export default component$(() => {
       font-family: 'Inter Variable', sans-serif;
       background-color: #fefefe;
       color: #222;
+    }
+    body {
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100svh;
+      font-weight: normal;
+    }
+
+    input,
+    button,
+    textarea,
+    select {
+        font: inherit;
+    }
+    
+    span,
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        overflow-wrap: break-word;
     }
   `);
   return <Slot />;
