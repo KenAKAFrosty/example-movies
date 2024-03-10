@@ -13,10 +13,7 @@ export default extendConfig(baseConfig, () => {
     },
     plugins: [
       bunServerAdapter({
-        ssg: {
-          include: ["/*"],
-          origin: "https://yoursite.dev",
-        },
+        ssg: null
       }),
     ],
   };
