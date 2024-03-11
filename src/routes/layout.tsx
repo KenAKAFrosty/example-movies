@@ -1,7 +1,7 @@
 import {
   $,
   component$,
-  Signal,
+  type Signal,
   Slot,
   sync$,
   useOnWindow,
@@ -22,11 +22,17 @@ function extractUrlsFromFontsourceString(fontsourceString: string) {
 }
 
 export const head: DocumentHead = (event) => {
-  event; //leaving here to make clear we can access this if needed for anything dynamic we want in the <head>
   const interFontUrls = extractUrlsFromFontsourceString(
     interFontDeclarationString
   );
   return {
+    title: event.head.title || "Qwik | Example Movies",
+    meta: [
+      {
+        name: "description",
+        content: "Inspired by Ryan from Remix's original example using Remix",
+      },
+    ],
     links: interFontUrls.map((url) => {
       return {
         rel: "preload",
@@ -165,8 +171,9 @@ const Header = component$(() => {
       {showSearch.value && <SearchModal showModalSignal={showSearch} />}
       <div>
         <a href="https://github.com/KenAKAFrosty/example-movies">
-          <GitHubLogo />
-          Code
+          <button>
+            <GitHubLogo /> Code
+          </button>
         </a>
       </div>
       <h1>

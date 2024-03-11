@@ -1,8 +1,5 @@
-import {
-  component$,
-  useStylesScoped$
-} from "@builder.io/qwik";
-import { routeLoader$, type DocumentHead, Link } from "@builder.io/qwik-city";
+import { component$, useStylesScoped$ } from "@builder.io/qwik";
+import { Link, routeLoader$ } from "@builder.io/qwik-city";
 import { sql } from "kysely";
 import { getQueryBuilder } from "~/database/query_builder";
 
@@ -28,36 +25,39 @@ export default component$(() => {
   ul { 
     width: 380px;
   }
-  h2 { 
+  h3 { 
     font-weight: normal;
-    font-size: 18px;
+    font-size: 16px;
+  }
+  ul { 
+    list-style: none;
+    padding: 0;
+  }
+  ul li { 
+    font-size: 20px;
+    margin-bottom: 8px;
   }
 `);
-
 
   const randomMovies = useRandomMovies();
 
   return (
     <main>
-
-      <h2>Here are a few random movies</h2>
+      <h3>Here are a few random movies</h3>
       <ul>
         {randomMovies.value.map((row) => (
           <li key={row.title}>
-            <Link href={`/movie/${row.id}`}>{row.title}</Link>
+            <Link
+              href={`/movie/${row.title
+                .split(" ")
+                .filter((x) => x)
+                .join("-")}-${row.id}`}
+            >
+              {row.title}
+            </Link>
           </li>
         ))}
       </ul>
     </main>
   );
 });
-
-export const head: DocumentHead = {
-  title: "Qwik | Example Movies",
-  meta: [
-    {
-      name: "Qwik | Example Movies",
-      content: "Inspired by Ryan from Remix's original example using Remix",
-    },
-  ],
-};
