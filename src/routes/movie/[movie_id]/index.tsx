@@ -1,10 +1,15 @@
+import { component$, useStylesScoped$ } from "@builder.io/qwik";
 import {
-  component$,
-  useStylesScoped$
-} from "@builder.io/qwik";
-import { routeLoader$, type DocumentHead } from "@builder.io/qwik-city";
+  routeLoader$,
+  type DocumentHead,
+  type RequestHandler,
+} from "@builder.io/qwik-city";
 import { getQueryBuilder } from "~/database/query_builder";
 import { getMovieIdFromRequestEvent } from "../shared_functionality";
+
+export const onGet: RequestHandler = async (event) => {
+  event.headers.set("Cache-Control", "public, max-age=3600");
+};
 
 export const useThisMovie = routeLoader$(async (event) => {
   const movieId = getMovieIdFromRequestEvent(event);
@@ -115,12 +120,14 @@ export default component$(() => {
         <span class="year">({movieData.value.movie.year})</span>
       </h1>
       <section>
-        {movieData.value.movie.thumbnail && <img
-          src={movieData.value.movie.thumbnail ?? ""}
-          alt={movieData.value.movie.title}
-          height={movieData.value.movie.thumbnail_height ?? undefined}
-          width={movieData.value.movie.thumbnail_width ?? undefined}
-        />}
+        {movieData.value.movie.thumbnail && (
+          <img
+            src={movieData.value.movie.thumbnail ?? ""}
+            alt={movieData.value.movie.title}
+            height={movieData.value.movie.thumbnail_height ?? undefined}
+            width={movieData.value.movie.thumbnail_width ?? undefined}
+          />
+        )}
         <div class="info">
           <p>{movieData.value.movie.extract}</p>
           {movieData.value.cast && (
