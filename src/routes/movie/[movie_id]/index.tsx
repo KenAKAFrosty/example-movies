@@ -1,8 +1,6 @@
 import {
   component$,
-  useSignal,
-  useStylesScoped$,
-  useVisibleTask$
+  useStylesScoped$
 } from "@builder.io/qwik";
 import { routeLoader$, type DocumentHead } from "@builder.io/qwik-city";
 import { getQueryBuilder } from "~/database/query_builder";
@@ -73,6 +71,7 @@ export default component$(() => {
       display: flex;
       align-items: center;
       justify-content: center;
+      max-width: 380px;
     }
     .year { 
       font-size: 18px;
@@ -104,30 +103,7 @@ export default component$(() => {
       border-radius: 8px;
       outline: 1px solid #ccc;
     }
-    img { 
-      opacity: 0;
-      filter: blur(4px);
-      transition: opacity 0.5s ease, filter 0.5s ease;
-    }
-    .loaded { 
-      opacity: 1;
-      filter: blur(0);
-    }
     `);
-
-  const imgRef = useSignal<HTMLImageElement>();
-  const imageHasLoaded = useSignal(false);
-
-  useVisibleTask$(() => {
-    imgRef.value
-      ?.decode()
-      .then(() => {
-        imageHasLoaded.value = true;
-      })
-      .catch(() => {
-        console.log("Failed to decode image");
-      });
-  });
 
   return (
     <main>
@@ -136,16 +112,12 @@ export default component$(() => {
         <span class="year">({movieData.value.movie.year})</span>
       </h1>
       <section>
-        <img
-          ref={imgRef}
-          class={{
-            loaded: imageHasLoaded.value,
-          }}
-          src={"./thumbnail.png"}
+        {movieData.value.movie.thumbnail && <img
+          src={movieData.value.movie.thumbnail ?? ""}
           alt={movieData.value.movie.title}
           height={movieData.value.movie.thumbnail_height ?? undefined}
           width={movieData.value.movie.thumbnail_width ?? undefined}
-        />
+        />}
         <div class="info">
           <p>{movieData.value.movie.extract}</p>
           {movieData.value.cast && (

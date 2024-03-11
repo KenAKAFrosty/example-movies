@@ -1,8 +1,6 @@
 import {
   component$,
-  useSignal,
-  useStylesScoped$,
-  useVisibleTask$
+  useStylesScoped$
 } from "@builder.io/qwik";
 import { Link, routeLoader$ } from "@builder.io/qwik-city";
 import { sql } from "kysely";
@@ -65,14 +63,7 @@ const RandomMovie = component$(
         align-items: center;
       }
       img { 
-        opacity: 0;
-        filter: blur(4px);
-        transition: opacity 0.5s ease-out, filter 0.5s ease-out;
         min-width: 21px;
-      }
-      .loaded { 
-        opacity: 1;
-        filter: blur(0);
       }
     `);
     const movieUrl = `/movie/${props.movieData.title
@@ -81,35 +72,18 @@ const RandomMovie = component$(
       .filter((x) => x)
       .join("-")}-${props.movieData.id}`;
 
-    const thumbnailSrc = `${movieUrl}/thumbnail.png`;
-
-    const imgRef = useSignal<HTMLImageElement>();
-    const imageHasLoaded = useSignal(false);
-    useVisibleTask$(()=> { 
-      imgRef.value
-        ?.decode()
-        .then(() => {
-          imageHasLoaded.value = true;
-        })
-        .catch(() => {
-          console.log("Failed to decode image");
-        });
-    });
-    
     return (
       <li key={props.movieData.title}>
         <Link href={movieUrl}>
           {props.movieData.title} ({props.movieData.year})
         </Link>
-        <img
-          class={{
-            loaded: imageHasLoaded.value,
-          }}
-          ref={imgRef}
-          src={thumbnailSrc}
-          alt={props.movieData.title}
-          height={30}
-        />
+        {props.movieData.thumbnail && (
+          <img
+            src={props.movieData.thumbnail}
+            alt={props.movieData.title}
+            height={30}
+          />
+        )}
       </li>
     );
   }
