@@ -32,6 +32,7 @@ export interface Movies {
   thumbnail_height: number | null;
   thumbnail_width: number | null;
   title: string;
+  title_tsvector: Generated<string | null>;
   year: number | null;
 }
 

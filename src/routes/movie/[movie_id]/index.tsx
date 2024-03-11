@@ -1,4 +1,9 @@
-import { component$, useStylesScoped$ } from "@builder.io/qwik";
+import {
+  component$,
+  useSignal,
+  useStylesScoped$,
+  useVisibleTask$
+} from "@builder.io/qwik";
 import { routeLoader$, type DocumentHead } from "@builder.io/qwik-city";
 import { getQueryBuilder } from "~/database/query_builder";
 import { getMovieIdFromRequestEvent } from "./shared_functionality";
@@ -64,8 +69,16 @@ export default component$(() => {
 
   useStylesScoped$(`
     h1 { 
-      text-align: center;
       margin: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .year { 
+      font-size: 18px;
+      font-weight: normal;
+      margin-left: 8px;
+      margin-top: 2px;
     }
     section { 
       display: flex;
@@ -91,12 +104,43 @@ export default component$(() => {
       border-radius: 8px;
       outline: 1px solid #ccc;
     }
+    img { 
+      opacity: 0;
+      filter: blur(4px);
+      transition: opacity 0.5s ease, filter 0.5s ease;
+    }
+    .loaded { 
+      opacity: 1;
+      filter: blur(0);
+    }
     `);
+
+  const imgRef = useSignal<HTMLImageElement>();
+  const imageHasLoaded = useSignal(false);
+
+  useVisibleTask$(() => {
+    imgRef.value
+      ?.decode()
+      .then(() => {
+        imageHasLoaded.value = true;
+      })
+      .catch(() => {
+        console.log("Failed to decode image");
+      });
+  });
+
   return (
     <main>
-      <h1>{movieData.value.movie.title}</h1>
+      <h1>
+        {movieData.value.movie.title}
+        <span class="year">({movieData.value.movie.year})</span>
+      </h1>
       <section>
         <img
+          ref={imgRef}
+          class={{
+            loaded: imageHasLoaded.value,
+          }}
           src={"./thumbnail.png"}
           alt={movieData.value.movie.title}
           height={movieData.value.movie.thumbnail_height ?? undefined}
