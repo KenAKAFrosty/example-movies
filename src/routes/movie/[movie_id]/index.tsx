@@ -6,9 +6,10 @@ import {
 } from "@builder.io/qwik-city";
 import { getQueryBuilder } from "~/database/query_builder";
 import { getMovieIdFromRequestEvent } from "../shared_functionality";
+import { LONG_LIVED_CACHE_CONTROL } from "~/constants";
 
 export const onGet: RequestHandler = async (event) => {
-  event.headers.set("Cache-Control", "public, max-age=3600");
+  event.headers.set("Cache-Control", LONG_LIVED_CACHE_CONTROL);
 };
 
 export const useThisMovie = routeLoader$(async (event) => {
@@ -26,7 +27,6 @@ export const useThisMovie = routeLoader$(async (event) => {
     .where("id", "=", movieId)
     .executeTakeFirst();
 
-  console.log(movieData);
   if (!movieData) {
     throw event.error(404, "Movie not found");
   }

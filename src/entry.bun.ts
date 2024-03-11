@@ -30,7 +30,7 @@ Bun.serve({
   async fetch(request: Request) {
     const staticResponse = await staticFile(request);
     if (staticResponse) {
-      staticResponse.headers.set('Cache-Control', 'public, max-age=30, s-maxage=2419200');
+      staticResponse.headers.set('Cache-Control', 'public, immutable, max-age=2419200, s-maxage=2419200');
       return staticResponse;
     }
 

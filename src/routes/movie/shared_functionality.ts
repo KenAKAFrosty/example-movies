@@ -1,7 +1,6 @@
 import { type RequestEventBase } from "@builder.io/qwik-city";
 
 export function getMovieIdFromRequestEvent(event: RequestEventBase) {
-  console.log(event.params);
   if (!event.params.movie_id) {
     return null;
   }

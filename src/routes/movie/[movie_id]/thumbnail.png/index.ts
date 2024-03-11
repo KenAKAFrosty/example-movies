@@ -1,6 +1,7 @@
 import { type RequestHandler } from "@builder.io/qwik-city";
 import { getMovieIdFromRequestEvent } from "../../shared_functionality";
 import { getQueryBuilder } from "~/database/query_builder";
+import { LONG_LIVED_CACHE_CONTROL } from "~/constants";
 
 
 //This isn't really necessary when linking to something as powerful as wikimedia (might be a little slower on first loads in fact),
@@ -28,7 +29,7 @@ export const onGet: RequestHandler = async (event) => {
   const response = new Response(buffer, {
     headers: {
       "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=31536000, immutable",
+      "Cache-Control": LONG_LIVED_CACHE_CONTROL,
     },
   });
   event.send(response);
