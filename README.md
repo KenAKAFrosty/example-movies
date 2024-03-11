@@ -1,4 +1,4 @@
-Easily one-click host this same project on Railway!
+Easily one-click host this same project on Railway!<br/>
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/_Me6-6)
 
 
@@ -8,17 +8,18 @@ This was a Qwik version of Ryan's original Remix example
 [Demo](https://remix-movies.pages.dev/)
 [Repo](https://github.com/remix-run/example-movies)
 
-The focus was on data loading patterns, especially in a world of mixed SSR/CSR
-For this Qwik version I wanted to try an approach that relied heavily on caching. ([See Tweet])[https://twitter.com/KenAKAFrosty/status/1767075551133478957]
+The focus was on data loading patterns, especially in a world of mixed SSR/CSR.
+
+For this Qwik version I wanted to try an approach that relied heavily on caching. [(See Tweet)](https://twitter.com/KenAKAFrosty/status/1767075551133478957)
 
 
 
 ## Possible TODO/ good PR Contributions:
 - 📃 Implement a No-JS working version using forms/actions 
-- 🖼 More thoughtful ideas on image loading / cool ways to preload small images in a sane way
+- 🎨 More thoughtful ideas on image loading / cool ways to preload small images in a sane way
 - 🧙‍♂️ Simple solution to the browser showing empty image even when the image source is loaded from disk cache? It's incredibly fast, but there's still a slight flicker.  Wonder if there's some relatively simple html/css wizardry we could use there
-- 👆 A better "excuse" to have a more standard `server$` call in there. 
-    - Ideally it's optional data, like maybe upvoting or favoriting a movie or something. I just wanted to make sure that the use of the very powerful `server$` wasn't overlooked in a public demo. My current choice of doing a preview of the movie description is dumb.
+- 🌐 A better "excuse" to have a more standard `server$` call in there. 
+    - Ideally it's optional data, like maybe upvoting or favoriting a movie or something. I just wanted to make sure that the use of the very powerful `server$` wasn't overlooked in a public demo of Qwik. My current choice of using it for a preview of the movie description is dumb.
     
 
 
