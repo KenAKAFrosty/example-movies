@@ -6,8 +6,10 @@ import { Link, routeLoader$ } from "@builder.io/qwik-city";
 import { sql } from "kysely";
 import { getQueryBuilder } from "~/database/query_builder";
 import { getMovieUrlFromTitleAndId } from "./movie/shared_functionality";
+import { DO_NOT_CACHE_CONTROL } from "~/constants";
 
-export const useRandomMovies = routeLoader$(() => {
+export const useRandomMovies = routeLoader$((event) => {
+  event.headers.set("Cache-Control", DO_NOT_CACHE_CONTROL);
   return getQueryBuilder()
     .selectFrom("movies")
     .selectAll()
