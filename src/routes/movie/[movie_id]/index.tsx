@@ -4,7 +4,7 @@ import {
 } from "@builder.io/qwik";
 import { routeLoader$, type DocumentHead } from "@builder.io/qwik-city";
 import { getQueryBuilder } from "~/database/query_builder";
-import { getMovieIdFromRequestEvent } from "./shared_functionality";
+import { getMovieIdFromRequestEvent } from "../shared_functionality";
 
 export const useThisMovie = routeLoader$(async (event) => {
   const movieId = getMovieIdFromRequestEvent(event);
@@ -67,8 +67,11 @@ export default component$(() => {
 
   useStylesScoped$(`
     h1 { 
-      margin: 18px;
+      margin: 18px auto;
       display: flex;
+      text-align: center;
+      width: 100%;
+      flex-grow: 1;
       align-items: center;
       justify-content: center;
       max-width: 380px;

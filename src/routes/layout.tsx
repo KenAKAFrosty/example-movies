@@ -1,19 +1,33 @@
 import {
   $,
-  component$,
-  type Signal,
   Slot,
+  component$,
   sync$,
+  useComputed$,
   useOnWindow,
   useSignal,
   useStyles$,
   useStylesScoped$,
   useTask$,
+  useVisibleTask$,
+  type Signal,
 } from "@builder.io/qwik";
-import { Link, type DocumentHead, useLocation } from "@builder.io/qwik-city";
+import {
+  Link,
+  routeLoader$,
+  server$,
+  useLocation,
+  type DocumentHead,
+} from "@builder.io/qwik-city";
 import "@fontsource-variable/inter";
 import interFontDeclarationString from "@fontsource-variable/inter?inline";
 import { GitHubLogo, QwikLogo } from "~/components/icons";
+import { getQueryBuilder } from "~/database/query_builder";
+import {
+  searchMovieTitles,
+  type SearchResults,
+} from "./movie/search/[term]/helpers";
+import { getMovieUrlFromTitleAndId } from "./movie/shared_functionality";
 
 function extractUrlsFromFontsourceString(fontsourceString: string) {
   const extractUrlsFromFontsourceStringRegex = /url\(([^)]+)\)/g;
@@ -45,7 +59,33 @@ export const head: DocumentHead = (event) => {
   };
 };
 
+const SEARCH_TERM_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+const SEARCH_TERM_COOKIE_NAME = "search_term";
+export const useLoadedSearchFromServer = routeLoader$(async (event) => {
+  const fromQueryParam = event.url.searchParams.get("search_for");
+  const cookieString = event.request.headers.get("cookie") ?? "";
+  const term = fromQueryParam ?? getSavedSearchTerm(cookieString);
+  if (!term) {
+    return {
+      term: null,
+      searchResults: null,
+    };
+  }
+  event.cookie.set(SEARCH_TERM_COOKIE_NAME, term, {
+    path: "/",
+    maxAge: SEARCH_TERM_COOKIE_MAX_AGE,
+  });
+  const searchResults = await searchMovieTitles(term, event);
+  return {
+    term,
+    searchResults,
+  };
+});
+
 export default component$(() => {
+  //Note the use of `useStyles$` vs `useStylesScoped$` to define global and scoped styles
+  //Since this is the root layout, it's a great place to establish global styles, giving us some flexibility if needed.
+  //But then for the actual layout, we want to use scoped styles to avoid conflicts with other parts of the app.
   useStyles$(`
     * { 
       padding: 0;
@@ -111,6 +151,8 @@ export default component$(() => {
 });
 
 const Header = component$(() => {
+  useLoadedSearchFromServer();
+
   useStylesScoped$(`
     header { 
       width: 100%;
@@ -146,8 +188,13 @@ const Header = component$(() => {
       font-weight: normal;
     }
   `);
-
+  const location = useLocation();
   const showSearch = useSignal(false);
+  useTask$(() => {
+    if (location.url.searchParams.has("search_for")) {
+      showSearch.value = true;
+    }
+  });
   useOnWindow(
     "keydown",
     sync$((e: KeyboardEvent) => {
@@ -164,8 +211,7 @@ const Header = component$(() => {
       }
     })
   );
-  const location = useLocation();
-  console.log(location.url.pathname);
+
   return (
     <header>
       {showSearch.value && <SearchModal showModalSignal={showSearch} />}
@@ -194,6 +240,8 @@ const Header = component$(() => {
   );
 });
 
+const CLEAR_BUTTON_WIDTH = 32;
+const CLEAR_BUTTON_ACCOMODATION = CLEAR_BUTTON_WIDTH + 4;
 const SearchModal = component$(
   (props: { showModalSignal: Signal<boolean> }) => {
     useStylesScoped$(`
@@ -220,19 +268,125 @@ const SearchModal = component$(
     }
     section { 
       background-color: white;
-      width: 200px;
-      height: 200px;
+      width: 380px;
+      height: 80vh;
+      height: 80dvh;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.2), 2px 2px 15px rgba(0,0,0,0.1);
       z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-  `);
+    input { 
+      border: none;
+      width: 100%;
+      outline: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 4px ${CLEAR_BUTTON_ACCOMODATION}px 4px 8px;
+    }
+    ul { 
+      list-style: none;
+      overflow-y: auto;
+    }
+    li { 
+      display: flex;
+      align-items: center;
+      font-size: 18px;
+      margin-top: 12px;
+    }
+    .no-results { 
+      padding-top: 12px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    .input-with-button {
+      display: flex;
+      align-items: center;
+    }
+    .input-with-button button { 
+      margin-left: -${CLEAR_BUTTON_ACCOMODATION}px;
+      width: ${CLEAR_BUTTON_WIDTH}px;
+      border: none;
+    }
+    .spacer { 
+      flex-grow: 1;
+    }
+    .preview { 
+      font-size: 12px;
+      border: none;
+      padding: 4px 10px;
+      margin-right: 4px;
+    }
+    `);
 
-    useTask$(() => {
-      if (typeof window === "undefined") return;
+    const inputRef = useSignal<HTMLInputElement>();
+    const loadedSearchFromServer = useLoadedSearchFromServer();
+    const preloadedSearchTerm = useComputed$(() => {
+      if (loadedSearchFromServer.value.term) {
+        return loadedSearchFromServer.value.term;
+      }
+      if (typeof window === "undefined") {
+        return "";
+      }
+      return getSavedSearchTerm(document.cookie) ?? "";
+    });
+    const searchText = useSignal(preloadedSearchTerm.value);
+    const searchResults = useSignal(loadedSearchFromServer.value.searchResults);
+    const debounceTimer = useSignal<number>(0);
+    const previewData = useSignal<null | PreviewData>(null);
+
+    useTask$(({ track }) => {
+      const term = track(() => searchText.value);
+      if (typeof window === "undefined") {
+        return;
+      }
+      document.cookie = `${SEARCH_TERM_COOKIE_NAME}=${term}; path=/; max-age=${SEARCH_TERM_COOKIE_MAX_AGE}`;
+      previewData.value = null;
+      clearTimeout(debounceTimer.value);
+      if (!term) {
+        searchResults.value = null;
+        return;
+      }
+      debounceTimer.value = Number(
+        setTimeout(() => {
+          fetch("/movie/search/" + term).then(async (raw) => {
+            const result = (await raw.json()) as SearchResults;
+            searchResults.value = result;
+          });
+        }, 150)
+      );
+    });
+
+    useVisibleTask$(() => {
+      setTimeout(() => {
+        inputRef.value!.focus();
+      }, 20);
       window.document.body.style.overflow = "hidden";
       return () => {
         window.document.body.style.overflow = "auto";
       };
     });
+
+    const location = useLocation();
+    useTask$(({ track }) => {
+      track(() => props.showModalSignal.value);
+      track(() => searchText.value);
+      if (typeof window === "undefined") {
+        return;
+      }
+      if (props.showModalSignal.value) {
+        const url = new URL(location.url.href);
+        url.searchParams.set("search_for", searchText.value);
+        window.history.replaceState(null, "", url.pathname + url.search);
+      } else {
+        window.history.replaceState(null, "", location.url.pathname);
+      }
+    });
+
     return (
       <main>
         <aside
@@ -240,11 +394,115 @@ const SearchModal = component$(
             props.showModalSignal.value = false;
           }}
         />
-        <section></section>
+        <section>
+          <h2>Search Movies</h2>
+          <div class="input-with-button">
+            <input ref={inputRef} autoFocus={true} bind:value={searchText} />{" "}
+            <button
+              onClick$={() => {
+                searchText.value = "";
+              }}
+            >
+              X
+            </button>
+          </div>
+          <ul>
+            {searchResults.value === null ? (
+              <div class="no-results">
+                <h3>No results</h3>
+              </div>
+            ) : (
+              searchResults.value.map((result) => {
+                const aspectRatio =
+                  result.thumbnail_width! / result.thumbnail_height!;
+                const height = 40;
+                const width = height * aspectRatio;
+                return (
+                  <li key={result.id}>
+                    <button
+                      class="preview"
+                      onClick$={() => {
+                        getPreviewDataFromServer(result.id).then((data) => {
+                          previewData.value = data ?? null;
+                        });
+                      }}
+                    >
+                      Preview
+                    </button>
+                    {result.thumbnail && (
+                      <img
+                        src={result.thumbnail}
+                        alt={result.title}
+                        height={height}
+                        width={width}
+                      />
+                    )}
+                    <Link
+                      onClick$={() => {
+                        setTimeout(() => {
+                          props.showModalSignal.value = false;
+                        }, 50);
+                      }}
+                      href={getMovieUrlFromTitleAndId(result)}
+                    >
+                      {result.title}
+                    </Link>
+                  </li>
+                );
+              })
+            )}
+          </ul>
+          <div class="spacer" />
+          {previewData.value && <SearchPreview data={previewData.value} />}
+        </section>
       </main>
     );
   }
 );
+
+//Adding this server$ lookup is a little bit arbitrary because we could reasonably include the data in the search results,
+//but using server$ is very common and helpful, and the rest of this demo happened to use pure data endpoints (e.g., /movie/search/[term])
+//So I wanted to make sure I didn't paint a picture of that being the common/normal way of doing things.
+const getPreviewDataFromServer = server$(async function (movie_id: number) {
+  return getQueryBuilder()
+    .selectFrom("movies")
+    .select(["extract", "year", "title"])
+    .where("id", "=", movie_id)
+    .executeTakeFirst();
+});
+
+type PreviewData = NonNullable<
+  Awaited<ReturnType<typeof getPreviewDataFromServer>>
+>;
+
+const SearchPreview = component$((props: { data: PreviewData }) => {
+  const maxExtractLength = 200;
+  return (
+    <section>
+      <h3>
+        {props.data.title}
+        <span>({props.data.year})</span>
+      </h3>
+      {props.data.extract && (
+        <p>
+          {props.data.extract.slice(0, maxExtractLength)}
+          {props.data.extract.length > maxExtractLength && "....."}
+        </p>
+      )}
+    </section>
+  );
+});
+
+function getSavedSearchTerm(cookieString: string) {
+  const cookies = cookieString.split("; ");
+  for (const cookie of cookies) {
+    const [key, value] = cookie.split("=");
+    if (key === SEARCH_TERM_COOKIE_NAME) {
+      return value;
+    }
+  }
+  return undefined;
+}
 
 const Footer = component$(() => {
   useStylesScoped$(`

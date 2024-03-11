@@ -5,6 +5,7 @@ import {
 import { Link, routeLoader$ } from "@builder.io/qwik-city";
 import { sql } from "kysely";
 import { getQueryBuilder } from "~/database/query_builder";
+import { getMovieUrlFromTitleAndId } from "./movie/shared_functionality";
 
 export const useRandomMovies = routeLoader$(() => {
   return getQueryBuilder()
@@ -62,26 +63,23 @@ const RandomMovie = component$(
         display: flex;
         align-items: center;
       }
-      img { 
-        min-width: 21px;
-      }
     `);
-    const movieUrl = `/movie/${props.movieData.title
-      .replaceAll(/[^a-zA-Z0-9 ]/g, "")
-      .split(" ")
-      .filter((x) => x)
-      .join("-")}-${props.movieData.id}`;
+ 
+    const aspectRatio = props.movieData.thumbnail_width! / props.movieData.thumbnail_height!;
+    const height = 30;
+    const width = height * aspectRatio;
 
     return (
       <li key={props.movieData.title}>
-        <Link href={movieUrl}>
+        <Link href={getMovieUrlFromTitleAndId(props.movieData)}>
           {props.movieData.title} ({props.movieData.year})
         </Link>
         {props.movieData.thumbnail && (
           <img
             src={props.movieData.thumbnail}
             alt={props.movieData.title}
-            height={30}
+            height={height}
+            width={width}
           />
         )}
       </li>

@@ -1,5 +1,5 @@
 import { type RequestHandler } from "@builder.io/qwik-city";
-import { getMovieIdFromRequestEvent } from "../shared_functionality";
+import { getMovieIdFromRequestEvent } from "../../shared_functionality";
 import { getQueryBuilder } from "~/database/query_builder";
 
 
