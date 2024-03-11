@@ -1,12 +1,15 @@
 import {
+  $,
   component$,
-  useStylesScoped$
+  useOnDocument,
+  useStylesScoped$,
+  useTask$
 } from "@builder.io/qwik";
 import { Link, routeLoader$ } from "@builder.io/qwik-city";
 import { sql } from "kysely";
+import { DO_NOT_CACHE_CONTROL } from "~/constants";
 import { getQueryBuilder } from "~/database/query_builder";
 import { getMovieUrlFromTitleAndId } from "./movie/shared_functionality";
-import { DO_NOT_CACHE_CONTROL } from "~/constants";
 
 export const useRandomMovies = routeLoader$((event) => {
   event.headers.set("Cache-Control", DO_NOT_CACHE_CONTROL);
@@ -66,24 +69,31 @@ const RandomMovie = component$(
         align-items: center;
       }
     `);
- 
-    const aspectRatio = props.movieData.thumbnail_width! / props.movieData.thumbnail_height!;
-    const height = 30;
-    const width = height * aspectRatio;
+
+    const movieUrl = getMovieUrlFromTitleAndId(props.movieData);
+    const thumbnailSrc = `${movieUrl}/thumbnail.png`;
+    useTask$(() => {
+      if (typeof window === "undefined") {
+        return;
+      }
+      fetch(thumbnailSrc).catch((e) => {
+        console.log("Error when prefetching thumbnail", e);
+      });
+    });
+    useOnDocument(
+      "DOMContentLoaded",
+      $(() => {
+        fetch(thumbnailSrc).catch((e) => {
+          console.log("Error when prefetching thumbnail", e);
+        });
+      })
+    );
 
     return (
       <li key={props.movieData.title}>
-        <Link href={getMovieUrlFromTitleAndId(props.movieData)}>
+        <Link href={movieUrl}>
           {props.movieData.title} ({props.movieData.year})
         </Link>
-        {props.movieData.thumbnail && (
-          <img
-            src={props.movieData.thumbnail}
-            alt={props.movieData.title}
-            height={height}
-            width={width}
-          />
-        )}
       </li>
     );
   }

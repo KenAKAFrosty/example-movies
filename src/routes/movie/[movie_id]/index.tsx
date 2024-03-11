@@ -5,7 +5,7 @@ import {
   type RequestHandler,
 } from "@builder.io/qwik-city";
 import { getQueryBuilder } from "~/database/query_builder";
-import { getMovieIdFromRequestEvent } from "../shared_functionality";
+import { getMovieIdFromRequestEvent, getMovieUrlFromTitleAndId } from "../shared_functionality";
 import { LONG_LIVED_CACHE_CONTROL } from "~/constants";
 
 export const onGet: RequestHandler = async (event) => {
@@ -111,6 +111,9 @@ export default component$(() => {
       border-radius: 8px;
       outline: 1px solid #ccc;
     }
+    img { 
+      background-color: #ccc;
+    }
     `);
 
   return (
@@ -122,7 +125,7 @@ export default component$(() => {
       <section>
         {movieData.value.movie.thumbnail && (
           <img
-            src={movieData.value.movie.thumbnail ?? ""}
+            src={getMovieUrlFromTitleAndId(movieData.value.movie) + "/thumbnail.png"}
             alt={movieData.value.movie.title}
             height={movieData.value.movie.thumbnail_height ?? undefined}
             width={movieData.value.movie.thumbnail_width ?? undefined}

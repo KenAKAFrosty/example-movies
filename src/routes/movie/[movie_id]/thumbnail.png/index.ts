@@ -25,10 +25,11 @@ export const onGet: RequestHandler = async (event) => {
   }
 
   const trueThumbnail = await fetch(thumbnailLocation);
+  const contentType = trueThumbnail.headers.get("Content-Type");
   const buffer = await trueThumbnail.arrayBuffer();
   const response = new Response(buffer, {
     headers: {
-      "Content-Type": "image/png",
+      "Content-Type": contentType ?? "image/png",
       "Cache-Control": LONG_LIVED_CACHE_CONTROL,
     },
   });

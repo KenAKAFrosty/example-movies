@@ -4,6 +4,7 @@ import {
   component$,
   sync$,
   useComputed$,
+  useOnDocument,
   useOnWindow,
   useSignal,
   useStyles$,
@@ -290,12 +291,6 @@ const SearchModal = component$(
       list-style: none;
       overflow-y: auto;
     }
-    li { 
-      display: flex;
-      align-items: center;
-      font-size: 18px;
-      margin-top: 12px;
-    }
     .no-results { 
       padding-top: 12px;
       width: 100%;
@@ -412,50 +407,81 @@ const SearchModal = component$(
                 <h3>No results</h3>
               </div>
             ) : (
-              searchResults.value.map((result) => {
-                const aspectRatio =
-                  result.thumbnail_width! / result.thumbnail_height!;
-                const height = 40;
-                const width = height * aspectRatio;
-                return (
-                  <li key={result.id}>
-                    <button
-                      class="preview"
-                      onClick$={() => {
-                        getPreviewDataFromServer(result.id).then((data) => {
-                          previewData.value = data ?? null;
-                        });
-                      }}
-                    >
-                      Preview
-                    </button>
-                    {result.thumbnail && (
-                      <img
-                        src={result.thumbnail}
-                        alt={result.title}
-                        height={height}
-                        width={width}
-                      />
-                    )}
-                    <Link
-                      onClick$={() => {
-                        setTimeout(() => {
-                          props.showModalSignal.value = false;
-                        }, 50);
-                      }}
-                      href={getMovieUrlFromTitleAndId(result)}
-                    >
-                      {result.title}
-                    </Link>
-                  </li>
-                );
-              })
+              searchResults.value.map((result) => (
+                <SearchResult
+                  result={result}
+                  key={result.id}
+                  previewData={previewData}
+                  showModalSignal={props.showModalSignal}
+                />
+              ))
             )}
           </ul>
           <div class="spacer" />
           {previewData.value && <SearchPreview data={previewData.value} />}
         </section>
       </main>
+    );
+  }
+);
+
+const SearchResult = component$(
+  (props: {
+    result: NonNullable<SearchResults>[number];
+    previewData: Signal<null | PreviewData>;
+    showModalSignal: Signal<boolean>;
+  }) => {
+    const movieUrl = getMovieUrlFromTitleAndId(props.result);
+
+    useTask$(() => {
+      if (typeof window === "undefined") {
+        return;
+      }
+      fetch(movieUrl + "/thumbnail.png").catch((e) => {
+        console.log("Error when prefetching thumbnail", e);
+      });
+    });
+
+    useOnDocument(
+      "DOMContentLoaded",
+      $(() => {
+        fetch(movieUrl + "/thumbnail.png").catch((e) => {
+          console.log("Error when prefetching thumbnail", e);
+        });
+      })
+    );
+
+    useStylesScoped$(`
+      li { 
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+        margin-top: 12px;
+      }
+    `);
+    return (
+      <li key={props.result.id}>
+        <button
+          class="preview"
+          onClick$={() => {
+            getPreviewDataFromServer(props.result.id).then((data) => {
+              props.previewData.value = data ?? null;
+            });
+          }}
+        >
+          Preview
+        </button>
+        <Link
+          onClick$={() => {
+            setTimeout(() => {
+              props.showModalSignal.value = false;
+            }, 50);
+          }}
+          href={movieUrl}
+        >
+          {props.result.title}
+        </Link>
+      </li>
     );
   }
 );
