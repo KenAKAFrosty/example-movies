@@ -40,23 +40,23 @@ export default component$(() => {
 `);
 
   const randomMovies = useRandomMovies();
-
   return (
     <main>
       <h3>Here are a few random movies</h3>
       <ul>
-        {randomMovies.value.map((row) => (
-          <li key={row.title}>
-            <Link
-              href={`/movie/${row.title
-                .split(" ")
-                .filter((x) => x)
-                .join("-")}-${row.id}`}
-            >
-              {row.title} ({row.year})
-            </Link>
-          </li>
-        ))}
+        {randomMovies.value.map((row) => {
+          const movieUrl = `/movie/${row.title
+            .split(" ")
+            .filter((x) => x)
+            .join("-")}-${row.id}`;
+          return (
+            <li key={row.title}>
+              <Link href={movieUrl}>
+                {row.title} ({row.year})
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </main>
   );
