@@ -1,19 +1,13 @@
 import { component$ } from "@builder.io/qwik";
 import { routeLoader$, type DocumentHead } from "@builder.io/qwik-city";
 import { getQueryBuilder } from "~/database/query_builder";
+import { getMovieIdFromRequestEvent } from "./shared_functionality";
 
 export const useThisMovie = routeLoader$(async (event) => {
-  if (!event.params.id) {
-    //Could have graceful UI fallbacks for this kind of thing, but for sake of demo just doing this
-    throw event.error(400, "Movie ID is required");
-  }
-  const movieIdString = event.params.id.split("-").at(-1);
-  if (!movieIdString) {
-    throw event.error(400, "Invalid movie ID");
-  }
-  const movieId = Number(movieIdString);
-  if (isNaN(movieId)) {
-    throw event.error(400, "Invalid movie ID");
+  const movieId = getMovieIdFromRequestEvent(event);
+  if (movieId === null) {
+    // Could have graceful UI for this kind of thing, but for sake of demo, I'm just doing this
+    throw event.error(400, "Invalid movie id");
   }
 
   const movieData = await getQueryBuilder()

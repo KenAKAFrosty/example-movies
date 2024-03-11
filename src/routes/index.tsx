@@ -53,7 +53,7 @@ export default component$(() => {
                 .filter((x) => x)
                 .join("-")}-${row.id}`}
             >
-              {row.title}
+              {row.title} ({row.year})
             </Link>
           </li>
         ))}
