@@ -479,7 +479,7 @@ const SearchResult = component$(
           }}
           href={movieUrl}
         >
-          {props.result.title}
+          {props.result.title} ({props.result.year})
         </Link>
       </li>
     );
