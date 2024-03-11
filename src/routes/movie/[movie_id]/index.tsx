@@ -39,6 +39,7 @@ export const useThisMovie = routeLoader$(async (event) => {
           .selectAll()
           .where("id", "=", movieData.cast_id)
           .execute();
+  event.headers.set("Cache-Control", LONG_LIVED_CACHE_CONTROL);
   return { movie: movieData, cast: castLookup };
 });
 
