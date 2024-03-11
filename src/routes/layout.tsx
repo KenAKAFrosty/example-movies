@@ -548,7 +548,8 @@ const Footer = component$(() => {
       color: inherit;
     }
     .qwik a svg { 
-      height: 2em;
+      height: 36px;
+      width: 130px;
       margin-bottom: -5px;
       margin-right: -12px;
     }
