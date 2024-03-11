@@ -12,6 +12,7 @@ import { createQwikCity } from "@builder.io/qwik-city/middleware/bun";
 import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
 import render from "./entry.ssr";
+import { LONG_LIVED_CACHE_CONTROL } from "./constants";
 
 // Create the Qwik City Bun middleware
 const { router, notFound, staticFile } = createQwikCity({
@@ -30,10 +31,9 @@ Bun.serve({
   async fetch(request: Request) {
     const staticResponse = await staticFile(request);
     if (staticResponse) {
-      staticResponse.headers.set('Cache-Control', 'public, immutable, max-age=2419200, s-maxage=2419200');
+      staticResponse.headers.set('Cache-Control', LONG_LIVED_CACHE_CONTROL);
       return staticResponse;
     }
-
     // Server-side render this request with Qwik City
     const qwikCityResponse = await router(request);
     if (qwikCityResponse) {
