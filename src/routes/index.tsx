@@ -56,7 +56,7 @@ const Content = component$(() => {
       <ul>
         {randomMovies.value.map((row) => (
           <li key={row.title}>
-            {row.title}:{row.year}
+            <a href={`/movie/${row.id}`}>{row.title}</a>
           </li>
         ))}
       </ul>
