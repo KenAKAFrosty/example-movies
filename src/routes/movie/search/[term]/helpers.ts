@@ -18,10 +18,15 @@ export async function searchMovieTitles(term: string, event: RequestEventBase) {
         "rank"
       ),
     ])
-    .where(
-      "title_tsvector",
-      "@@",
-      sql<string>`to_tsquery('english', ${preparedTerm})`
+    .where((eb) =>
+      eb.or([
+        eb(
+          "title_tsvector",
+          "@@",
+          sql<string>`to_tsquery('english', ${preparedTerm})`
+        ),
+        eb("title", "ilike", `%${term}%`),
+      ])
     )
     .orderBy("rank", "desc")
     .orderBy("title")
