@@ -5,13 +5,17 @@ Easily one-click host this same project on Railway!<br/>
 
 # Qwik Movies Example
 This was a Qwik version of Ryan's original Remix example
+( 
 [Demo](https://remix-movies.pages.dev/)
+|
 [Repo](https://github.com/remix-run/example-movies)
-
+)<br />
 The focus was on data loading patterns, especially in a world of mixed SSR/CSR.
 
 For this Qwik version I wanted to try an approach that relied heavily on caching. [(See Tweet)](https://twitter.com/KenAKAFrosty/status/1767075551133478957)
 
+
+The live demo is at https://qwikmovies.dev
 
 
 ## Possible TODO/ good PR Contributions:
